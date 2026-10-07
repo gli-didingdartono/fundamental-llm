@@ -152,3 +152,5 @@ a:hover { text-decoration: underline; }
   .auth-box h1 { font-size: 26px; }
   .back-link span { display: none; }
 }
+
+.alert.info { background: var(--primary-light); color: var(--primary-dark); border: 1px solid #c7d2fe; }

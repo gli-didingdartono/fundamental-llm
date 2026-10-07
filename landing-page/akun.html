@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profil Saya — Proyeka</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="auth.js"></script>
+  <script>
+    // Halaman ini hanya untuk user yang sudah login
+    if (!Auth.current()) location.replace('login.html');
+  </script>
+  <style>
+    body { background: var(--bg-soft); }
+    [hidden] { display: none !important; }
+    main { padding: 36px 0 80px; }
+
+    /* ---------- User menu ---------- */
+    .user-menu { position: relative; }
+    .user-btn {
+      display: flex; align-items: center; gap: 10px; background: var(--white); border: 1px solid var(--border);
+      border-radius: 999px; padding: 4px 14px 4px 4px; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; color: var(--dark);
+    }
+    .user-btn:hover { border-color: #cbd5e1; }
+    .user-btn .av { width: 34px; height: 34px; font-size: 13px; }
+    .dropdown {
+      position: absolute; right: 0; top: calc(100% + 8px); width: 230px; background: var(--white); border: 1px solid var(--border);
+      border-radius: 12px; box-shadow: var(--shadow); padding: 8px; display: none; z-index: 50;
+    }
+    .dropdown.open { display: block; }
+    .dropdown .who { padding: 10px 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px; font-size: 13px; color: var(--muted); }
+    .dropdown .who strong { display: block; color: var(--dark); font-size: 14px; }
+    .dropdown a, .dropdown button {
+      display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 8px; border: none; background: none;
+      font-family: inherit; font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; text-align: left;
+    }
+    .dropdown a:hover, .dropdown button:hover { background: var(--bg-soft); }
+    .dropdown .logout { color: var(--danger); }
+
+    /* ---------- Avatar ---------- */
+    .av {
+      border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: var(--white); overflow: hidden; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+    }
+    .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* ---------- Profile header ---------- */
+    .profile-head { background: var(--white); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; margin-bottom: 24px; }
+    .cover { height: 150px; background: linear-gradient(135deg, var(--primary) 0%, #6366f1 50%, var(--accent) 100%); position: relative; }
+    .cover::after { content: ""; position: absolute; width: 300px; height: 300px; border-radius: 50%; background: rgba(255,255,255,.08); top: -120px; right: -60px; }
+    .head-body { display: flex; align-items: flex-end; gap: 24px; padding: 0 32px 28px; margin-top: -56px; position: relative; flex-wrap: wrap; }
+    .avatar-wrap { position: relative; }
+    .avatar-wrap .av { width: 128px; height: 128px; font-size: 42px; border: 5px solid var(--white); box-shadow: var(--shadow); }
+    .avatar-edit {
+      position: absolute; right: 4px; bottom: 4px; width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--white);
+      background: var(--dark); color: var(--white); display: grid; place-items: center; cursor: pointer;
+    }
+    .avatar-edit:hover { background: var(--primary); }
+    .head-info { flex: 1; min-width: 220px; padding-bottom: 6px; }
+    .head-info h1 { font-size: 28px; font-weight: 800; color: var(--dark); letter-spacing: -.02em; line-height: 1.2; }
+    .head-meta { display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 14px; margin-top: 6px; }
+    .head-meta span { display: inline-flex; align-items: center; gap: 6px; }
+    .head-actions { display: flex; gap: 10px; padding-bottom: 6px; flex-wrap: wrap; }
+
+    /* ---------- Layout ---------- */
+    .profile-grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+    .cards { display: grid; gap: 24px; }
+    .card-p { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+    .card-p h2 { display: flex; align-items: center; gap: 10px; font-size: 18px; color: var(--dark); margin-bottom: 4px; }
+    .card-p .hint { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+    .card-p h2 .feature-icon { width: 36px; height: 36px; margin: 0; border-radius: 10px; }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+    .info { padding: 14px 0; border-bottom: 1px dashed var(--border); }
+    .info-grid .info:nth-last-child(-n+2) { border-bottom: none; }
+    .info dt { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+    .info dd { font-size: 16px; color: var(--dark); font-weight: 600; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; word-break: break-word; }
+    .info dd .sub { font-weight: 500; color: var(--muted); font-size: 14px; }
+    .empty { color: #94a3b8 !important; font-weight: 500 !important; font-style: italic; }
+
+    .pill { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+    .pill.ok { background: #d1fae5; color: #047857; }
+    .pill.warn { background: #fef3c7; color: #b45309; }
+    .link-btn { background: none; border: none; color: var(--primary); font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer; padding: 0; }
+    .link-btn:hover { text-decoration: underline; }
+
+    /* Sidebar */
+    .complete-bar { height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; margin: 12px 0 8px; }
+    .complete-bar div { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 999px; transition: width .4s; }
+    .complete-pct { font-size: 32px; font-weight: 800; color: var(--dark); }
+    .todo { list-style: none; display: grid; gap: 8px; margin-top: 14px; font-size: 14px; }
+    .todo li { display: flex; gap: 8px; align-items: center; }
+    .todo li.done { color: var(--muted); text-decoration: line-through; }
+    .sec-list { list-style: none; display: grid; gap: 14px; font-size: 14px; }
+    .sec-list li { display: flex; justify-content: space-between; gap: 10px; }
+    .sec-list span:first-child { color: var(--muted); }
+    .sec-list strong { color: var(--dark); text-align: right; }
+
+    /* ---------- Modal ---------- */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(15,23,42,.55); backdrop-filter: blur(3px); display: none;
+      align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; z-index: 200;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal { background: var(--white); border-radius: 18px; width: 100%; max-width: 640px; box-shadow: var(--shadow-lg); }
+    .modal.sm { max-width: 420px; }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; border-bottom: 1px solid var(--border); }
+    .modal-head h3 { font-size: 19px; color: var(--dark); }
+    .close-x { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 26px; line-height: 1; padding: 4px; }
+    .modal-body { padding: 24px 28px; }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 18px 28px; border-top: 1px solid var(--border); }
+    .form-section { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); margin: 6px 0 12px; }
+    .form-section:not(:first-child) { margin-top: 22px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    .fg label { display: block; font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 6px; }
+    .fg input, .fg select {
+      width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: 10px; background: var(--white);
+      font-family: inherit; font-size: 15px; color: var(--dark);
+    }
+    .fg input:focus, .fg select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79,70,229,.12); }
+    .fg input:disabled { background: var(--bg-soft); color: var(--muted); }
+    .fg small { display: block; font-size: 12px; color: var(--muted); margin-top: 5px; }
+    .fg.invalid input, .fg.invalid select { border-color: var(--danger); }
+    .fg .error { display: none; color: var(--danger); font-size: 13px; margin-top: 5px; font-weight: 500; }
+    .fg.invalid .error { display: block; }
+    .radio-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .radio-row label {
+      flex: 1; min-width: 120px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 12px; cursor: pointer; font-weight: 500; margin: 0;
+    }
+    .radio-row input { width: auto; accent-color: var(--primary); }
+    .radio-row label:has(input:checked) { border-color: var(--primary); background: var(--primary-light); }
+    .otp-input { text-align: center; font-size: 26px !important; letter-spacing: .5em; font-weight: 700; }
+
+    /* ---------- Toast ---------- */
+    .toast {
+      position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 120px); background: var(--dark); color: var(--white);
+      padding: 13px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lg); transition: transform .3s; z-index: 300;
+    }
+    .toast.show { transform: translate(-50%, 0); }
+    .toast.error { background: var(--danger); }
+
+    @media (max-width: 960px) {
+      .profile-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .head-body { padding: 0 20px 24px; flex-direction: column; align-items: flex-start; }
+      .head-actions { width: 100%; }
+      .head-actions .btn { flex: 1; }
+      .info-grid, .form-grid { grid-template-columns: 1fr; }
+      .info-grid .info:nth-last-child(2) { border-bottom: 1px dashed var(--border); }
+      .card-p { padding: 22px; }
+      .user-btn .name { display: none; }
+      .user-btn { padding: 4px; }
+      .modal-head, .modal-body, .modal-foot { padding-left: 20px; padding-right: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="navbar scrolled">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo" aria-label="Proyeka beranda">
+        <div class="logo-mark">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        Proyeka
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Beranda</a></li>
+        <li><a href="profil.html">Tentang Kami</a></li>
+        <li><a href="akun.html" class="active" aria-current="page">Profil Saya</a></li>
+      </ul>
+      <div class="user-menu">
+        <button class="user-btn" id="userBtn" aria-haspopup="true" aria-expanded="false">
+          <div class="av" data-avatar></div>
+          <span class="name" data-field="nickname"></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dropdown" id="dropdown">
+          <div class="who"><strong data-field="fullName"></strong><span data-field="handle"></span></div>
+          <a href="akun.html">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Profil Saya
+          </a>
+          <a href="index.html">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            Beranda
+          </a>
+          <button class="logout" data-logout>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Keluar
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <!-- ================= PROFILE HEADER ================= -->
+      <section class="profile-head" style="padding:0">
+        <div class="cover"></div>
+        <div class="head-body">
+          <div class="avatar-wrap">
+            <div class="av" data-avatar></div>
+            <button class="avatar-edit" id="avatarEditBtn" aria-label="Ganti foto profil" title="Ganti foto profil">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </button>
+            <input type="file" id="avatarInput" accept="image/png, image/jpeg, image/webp" hidden />
+          </div>
+          <div class="head-info">
+            <h1 data-field="fullName"></h1>
+            <div class="head-meta">
+              <span><span data-field="handle"></span></span>
+              <span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span data-field="location"></span>
+              </span>
+              <span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Bergabung <span data-field="memberSince"></span>
+              </span>
+            </div>
+          </div>
+          <div class="head-actions">
+            <button class="btn btn-outline" id="removeAvatarBtn" hidden>Hapus Foto</button>
+            <button class="btn btn-primary" id="editBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+              Edit Profil
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div class="profile-grid">
+        <div class="cards">
+
+          <!-- ================= PERSONAL ================= -->
+          <section class="card-p">
+            <h2><span class="feature-icon" style="background:#eef2ff"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Informasi Pribadi</h2>
+            <p class="hint">Nama yang tampil di proyek dan dilihat oleh rekan tim Anda.</p>
+            <dl class="info-grid">
+              <div class="info"><dt>Nama Lengkap</dt><dd data-field="fullName"></dd></div>
+              <div class="info"><dt>Nama Panggilan</dt><dd data-field="nickname"></dd></div>
+              <div class="info"><dt>Username</dt><dd><span data-field="handle"></span></dd></div>
+              <div class="info"><dt>Foto Profil</dt><dd><span data-field="avatarStatus"></span> <button class="link-btn" data-open-avatar>Ganti</button></dd></div>
+            </dl>
+          </section>
+
+          <!-- ================= CONTACT ================= -->
+          <section class="card-p">
+            <h2><span class="feature-icon" style="background:#ecfdf5"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>Kontak</h2>
+            <p class="hint">Digunakan untuk verifikasi keamanan akun dan komunikasi penting.</p>
+            <dl class="info-grid">
+              <div class="info">
+                <dt>Alamat Email</dt>
+                <dd><span data-field="email"></span><span data-verify="email"></span></dd>
+              </div>
+              <div class="info">
+                <dt>Nomor Telepon</dt>
+                <dd><span data-field="phone"></span><span data-verify="phone"></span></dd>
+              </div>
+            </dl>
+          </section>
+
+          <!-- ================= DEMOGRAPHICS ================= -->
+          <section class="card-p">
+            <h2><span class="feature-icon" style="background:#fffbeb"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>Informasi Demografi</h2>
+            <p class="hint">Membantu kami menyesuaikan zona waktu, bahasa, dan pengalaman Anda.</p>
+            <dl class="info-grid">
+              <div class="info"><dt>Tanggal Lahir</dt><dd><span data-field="birthDate"></span></dd></div>
+              <div class="info"><dt>Usia</dt><dd data-field="age"></dd></div>
+              <div class="info"><dt>Jenis Kelamin</dt><dd data-field="gender"></dd></div>
+              <div class="info"><dt>Negara</dt><dd data-field="country"></dd></div>
+              <div class="info"><dt>Kota</dt><dd data-field="city"></dd></div>
+              <div class="info"><dt>Zona Waktu</dt><dd data-field="timezone"></dd></div>
+            </dl>
+          </section>
+        </div>
+
+        <!-- ================= SIDEBAR ================= -->
+        <aside class="cards">
+          <section class="card-p">
+            <h2>Kelengkapan Profil</h2>
+            <div class="complete-pct" id="completePct">0%</div>
+            <div class="complete-bar"><div id="completeBar" style="width:0"></div></div>
+            <ul class="todo" id="todoList"></ul>
+          </section>
+          <section class="card-p">
+            <h2>Keamanan Akun</h2>
+            <p class="hint">Aktivitas sesi saat ini.</p>
+            <ul class="sec-list">
+              <li><span>Login terakhir</span><strong id="lastLogin"></strong></li>
+              <li><span>Sesi</span><strong id="sessionType"></strong></li>
+              <li><span>Email</span><strong data-verify-text="email"></strong></li>
+              <li><span>Telepon</span><strong data-verify-text="phone"></strong></li>
+            </ul>
+            <button class="btn btn-outline" data-logout style="width:100%;margin-top:22px;color:var(--danger)">Keluar dari Akun</button>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= EDIT MODAL ================= -->
+  <div class="modal-backdrop" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <form class="modal" id="editForm" novalidate>
+      <div class="modal-head">
+        <h3 id="editTitle">Edit Profil</h3>
+        <button type="button" class="close-x" data-close aria-label="Tutup">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-section">Informasi Pribadi</div>
+        <div class="form-grid">
+          <div class="fg" id="g-fullName">
+            <label for="e-fullName">Nama Lengkap *</label>
+            <input type="text" id="e-fullName" maxlength="80" autocomplete="name" />
+            <div class="error">Nama lengkap minimal 3 karakter.</div>
+          </div>
+          <div class="fg" id="g-nickname">
+            <label for="e-nickname">Nama Panggilan</label>
+            <input type="text" id="e-nickname" maxlength="30" autocomplete="nickname" />
+          </div>
+          <div class="fg full">
+            <label for="e-username">Username</label>
+            <input type="text" id="e-username" disabled />
+            <small>Username tidak dapat diubah.</small>
+          </div>
+        </div>
+
+        <div class="form-section">Kontak</div>
+        <div class="form-grid">
+          <div class="fg" id="g-email">
+            <label for="e-email">Alamat Email *</label>
+            <input type="email" id="e-email" autocomplete="email" />
+            <div class="error">Masukkan email yang valid.</div>
+          </div>
+          <div class="fg" id="g-phone">
+            <label for="e-phone">Nomor Telepon</label>
+            <input type="tel" id="e-phone" placeholder="+62 812-3456-7890" autocomplete="tel" />
+            <div class="error">Nomor telepon tidak valid (9–15 digit).</div>
+          </div>
+          <div class="fg full"><small>Mengubah email atau nomor telepon akan memerlukan verifikasi ulang.</small></div>
+        </div>
+
+        <div class="form-section">Informasi Demografi</div>
+        <div class="form-grid">
+          <div class="fg" id="g-birthDate">
+            <label for="e-birthDate">Tanggal Lahir</label>
+            <input type="date" id="e-birthDate" />
+            <div class="error">Tanggal lahir tidak valid (usia 13–120 tahun).</div>
+          </div>
+          <div class="fg">
+            <label>Jenis Kelamin</label>
+            <div class="radio-row">
+              <label><input type="radio" name="gender" value="Laki-laki" /> Laki-laki</label>
+              <label><input type="radio" name="gender" value="Perempuan" /> Perempuan</label>
+            </div>
+          </div>
+          <div class="fg">
+            <label for="e-country">Negara</label>
+            <select id="e-country">
+              <option value="">Pilih negara</option>
+              <option>Indonesia</option><option>Malaysia</option><option>Singapura</option><option>Brunei Darussalam</option>
+              <option>Thailand</option><option>Filipina</option><option>Vietnam</option><option>Australia</option>
+              <option>Jepang</option><option>Amerika Serikat</option><option>Lainnya</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label for="e-city">Kota</label>
+            <input type="text" id="e-city" list="cityList" maxlength="60" autocomplete="address-level2" />
+            <datalist id="cityList">
+              <option>Jakarta Selatan</option><option>Jakarta Pusat</option><option>Jakarta Barat</option><option>Jakarta Timur</option><option>Jakarta Utara</option>
+              <option>Bandung</option><option>Surabaya</option><option>Semarang</option><option>Yogyakarta</option><option>Medan</option>
+              <option>Makassar</option><option>Denpasar</option><option>Palembang</option><option>Balikpapan</option><option>Tangerang</option><option>Bekasi</option><option>Depok</option><option>Bogor</option>
+            </datalist>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-outline" data-close>Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ================= VERIFY MODAL ================= -->
+  <div class="modal-backdrop" id="verifyModal" role="dialog" aria-modal="true" aria-labelledby="verifyTitle">
+    <form class="modal sm" id="verifyForm" novalidate>
+      <div class="modal-head">
+        <h3 id="verifyTitle">Verifikasi</h3>
+        <button type="button" class="close-x" data-close aria-label="Tutup">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:18px;color:var(--muted)">Kami telah mengirim kode 6 digit ke <strong id="verifyTarget" style="color:var(--dark)"></strong>. <br /><small>(Demo: gunakan kode <strong>123456</strong>)</small></p>
+        <div class="fg" id="g-otp">
+          <label for="otp">Kode Verifikasi</label>
+          <input type="text" id="otp" class="otp-input" inputmode="numeric" maxlength="6" autocomplete="one-time-code" />
+          <div class="error">Kode verifikasi salah.</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-outline" data-close>Batal</button>
+        <button type="submit" class="btn btn-primary">Verifikasi</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const session = Auth.current();
+    if (!session) throw new Error('Belum login');
+
+    // ---------- Data profil (disimpan di localStorage per username) ----------
+    // Ganti dengan GET/PUT /api/profile saat backend tersedia
+    const PROFILE_KEY = 'proyeka_profile_' + session.username;
+    const DEFAULT_PROFILE = {
+      fullName: 'Budi Santoso',
+      nickname: 'Budi',
+      username: session.username,
+      avatar: null,
+      email: 'user@proyeka.id',
+      emailVerified: true,
+      phone: '+62 812-3456-7890',
+      phoneVerified: false,
+      birthDate: '1995-08-17',
+      gender: 'Laki-laki',
+      country: 'Indonesia',
+      city: 'Jakarta Selatan',
+      memberSince: '2024-03-12',
+    };
+
+    function loadProfile() {
+      try { return { ...DEFAULT_PROFILE, ...JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}'), username: session.username }; }
+      catch { return { ...DEFAULT_PROFILE }; }
+    }
+    function saveProfile() {
+      try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); return true; }
+      catch { toast('Gagal menyimpan: penyimpanan browser penuh.', true); return false; }
+    }
+    let profile = loadProfile();
+
+    // ---------- Helpers ----------
+    const fmtDate = iso => new Date(iso + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    function ageFrom(iso) {
+      const b = new Date(iso + 'T00:00:00'), t = new Date();
+      let age = t.getFullYear() - b.getFullYear();
+      if (t.getMonth() < b.getMonth() || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) age--;
+      return age;
+    }
+    function initials(name) {
+      return (name || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    }
+    function toast(msg, isError) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (isError ? ' error' : '');
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => t.className = 'toast', 2800);
+    }
+    function setText(el, value) {
+      el.textContent = value || 'Belum diisi';
+      el.classList.toggle('empty', !value);
+    }
+
+    // ---------- Render ----------
+    function render() {
+      const p = profile;
+      const computed = {
+        ...p,
+        nickname: p.nickname || p.fullName.split(' ')[0],
+        birthDate: p.birthDate ? fmtDate(p.birthDate) : '',
+        age: p.birthDate ? ageFrom(p.birthDate) + ' tahun' : '',
+        location: [p.city, p.country].filter(Boolean).join(', '),
+        memberSince: new Date(p.memberSince).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }),
+        avatarStatus: p.avatar ? 'Foto diunggah' : 'Menggunakan inisial',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        handle: '@' + p.username,
+      };
+      document.querySelectorAll('[data-field]').forEach(el => setText(el, computed[el.dataset.field]));
+
+      // Avatar
+      document.querySelectorAll('[data-avatar]').forEach(el => {
+        el.replaceChildren();
+        if (p.avatar) {
+          const img = document.createElement('img');
+          img.src = p.avatar;
+          img.alt = 'Foto profil ' + p.fullName;
+          el.appendChild(img);
+        } else {
+          el.textContent = initials(p.fullName);
+        }
+      });
+      document.getElementById('removeAvatarBtn').hidden = !p.avatar;
+
+      // Verification status
+      ['email', 'phone'].forEach(kind => {
+        const verified = p[kind + 'Verified'];
+        const has = !!p[kind];
+        document.querySelectorAll(`[data-verify="${kind}"]`).forEach(el => {
+          el.replaceChildren();
+          if (!has) return;
+          const pill = document.createElement('span');
+          pill.className = 'pill ' + (verified ? 'ok' : 'warn');
+          pill.textContent = verified ? '✓ Terverifikasi' : 'Belum diverifikasi';
+          el.appendChild(pill);
+          if (!verified) {
+            const btn = document.createElement('button');
+            btn.className = 'link-btn';
+            btn.textContent = 'Verifikasi sekarang';
+            btn.style.marginLeft = '8px';
+            btn.addEventListener('click', () => openVerify(kind));
+            el.appendChild(btn);
+          }
+        });
+        document.querySelectorAll(`[data-verify-text="${kind}"]`).forEach(el => {
+          el.textContent = !has ? '—' : verified ? '✓ Terverifikasi' : 'Belum diverifikasi';
+          el.style.color = !has ? '' : verified ? 'var(--success)' : 'var(--warning)';
+        });
+      });
+
+      // Completeness
+      const checks = [
+        ['Nama lengkap', !!p.fullName],
+        ['Foto profil', !!p.avatar],
+        ['Email terverifikasi', !!p.email && p.emailVerified],
+        ['Telepon terverifikasi', !!p.phone && p.phoneVerified],
+        ['Tanggal lahir', !!p.birthDate],
+        ['Jenis kelamin', !!p.gender],
+        ['Negara & kota', !!p.country && !!p.city],
+      ];
+      const pct = Math.round(checks.filter(c => c[1]).length / checks.length * 100);
+      document.getElementById('completePct').textContent = pct + '%';
+      document.getElementById('completeBar').style.width = pct + '%';
+      const list = document.getElementById('todoList');
+      list.replaceChildren(...checks.map(([label, done]) => {
+        const li = document.createElement('li');
+        li.className = done ? 'done' : '';
+        li.textContent = (done ? '✓ ' : '○ ') + label;
+        return li;
+      }));
+
+      document.getElementById('lastLogin').textContent = new Date(session.loginAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+      document.getElementById('sessionType').textContent = session.expiresAt ? 'Diingat 30 hari' : 'Sampai browser ditutup';
+      document.title = p.fullName + ' — Profil Saya | Proyeka';
+    }
+
+    // ---------- User dropdown & logout ----------
+    const userBtn = document.getElementById('userBtn');
+    const dropdown = document.getElementById('dropdown');
+    userBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = dropdown.classList.toggle('open');
+      userBtn.setAttribute('aria-expanded', open);
+    });
+    document.addEventListener('click', () => { dropdown.classList.remove('open'); userBtn.setAttribute('aria-expanded', 'false'); });
+    document.querySelectorAll('[data-logout]').forEach(btn => btn.addEventListener('click', () => {
+      Auth.logout();
+      location.replace('login.html');
+    }));
+
+    // ---------- Modals ----------
+    function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function closeModals() {
+      document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
+      document.body.style.overflow = '';
+    }
+    document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeModals));
+    document.querySelectorAll('.modal-backdrop').forEach(m => m.addEventListener('mousedown', e => { if (e.target === m) closeModals(); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
+
+    // ---------- Edit profile ----------
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const $ = id => document.getElementById(id);
+    const setInvalid = (id, invalid) => { $(id).classList.toggle('invalid', invalid); return !invalid; };
+
+    $('editBtn').addEventListener('click', () => {
+      const p = profile;
+      $('e-fullName').value = p.fullName;
+      $('e-nickname').value = p.nickname;
+      $('e-username').value = '@' + p.username;
+      $('e-email').value = p.email;
+      $('e-phone').value = p.phone;
+      $('e-birthDate').value = p.birthDate;
+      $('e-birthDate').max = new Date().toISOString().slice(0, 10);
+      document.querySelectorAll('input[name="gender"]').forEach(r => r.checked = r.value === p.gender);
+      $('e-country').value = p.country;
+      $('e-city').value = p.city;
+      document.querySelectorAll('#editForm .fg').forEach(g => g.classList.remove('invalid'));
+      openModal('editModal');
+      $('e-fullName').focus();
+    });
+    document.querySelectorAll('#editForm input, #editForm select').forEach(el =>
+      el.addEventListener('input', () => el.closest('.fg').classList.remove('invalid')));
+
+    $('editForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const v = id => $(id).value.trim();
+      const phoneDigits = v('e-phone').replace(/\D/g, '');
+      const birth = v('e-birthDate');
+      const age = birth ? ageFrom(birth) : null;
+
+      const ok = [
+        setInvalid('g-fullName', v('e-fullName').length < 3),
+        setInvalid('g-email', !EMAIL_RE.test(v('e-email'))),
+        setInvalid('g-phone', v('e-phone') !== '' && (phoneDigits.length < 9 || phoneDigits.length > 15)),
+        setInvalid('g-birthDate', birth !== '' && (isNaN(age) || age < 13 || age > 120)),
+      ].every(Boolean);
+      if (!ok) { toast('Periksa kembali isian yang ditandai merah.', true); return; }
+
+      const email = v('e-email'), phone = v('e-phone');
+      profile = {
+        ...profile,
+        fullName: v('e-fullName'),
+        nickname: v('e-nickname'),
+        email,
+        emailVerified: email === profile.email ? profile.emailVerified : false,
+        phone,
+        phoneVerified: phone === profile.phone ? profile.phoneVerified : false,
+        birthDate: birth,
+        gender: document.querySelector('input[name="gender"]:checked')?.value || '',
+        country: v('e-country'),
+        city: v('e-city'),
+      };
+      if (saveProfile()) {
+        render();
+        closeModals();
+        toast('✓ Profil berhasil diperbarui');
+      }
+    });
+
+    // ---------- Avatar upload ----------
+    const avatarInput = $('avatarInput');
+    $('avatarEditBtn').addEventListener('click', () => avatarInput.click());
+    document.querySelectorAll('[data-open-avatar]').forEach(b => b.addEventListener('click', () => avatarInput.click()));
+    avatarInput.addEventListener('change', () => {
+      const file = avatarInput.files[0];
+      avatarInput.value = '';
+      if (!file) return;
+      if (!/^image\/(png|jpeg|webp)$/.test(file.type)) { toast('Format harus JPG, PNG, atau WEBP.', true); return; }
+      if (file.size > 5 * 1024 * 1024) { toast('Ukuran foto maksimal 5 MB.', true); return; }
+
+      // Crop persegi & perkecil ke 256px agar hemat penyimpanan
+      const img = new Image();
+      img.onload = () => {
+        const size = 256, side = Math.min(img.width, img.height);
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = size;
+        canvas.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+        URL.revokeObjectURL(img.src);
+        const previous = profile.avatar;
+        profile.avatar = canvas.toDataURL('image/jpeg', 0.85);
+        if (saveProfile()) { render(); toast('✓ Foto profil diperbarui'); }
+        else profile.avatar = previous;
+      };
+      img.onerror = () => toast('Gagal membaca gambar.', true);
+      img.src = URL.createObjectURL(file);
+    });
+    $('removeAvatarBtn').addEventListener('click', () => {
+      if (!confirm('Hapus foto profil dan kembali menggunakan inisial?')) return;
+      profile.avatar = null;
+      saveProfile();
+      render();
+      toast('Foto profil dihapus');
+    });
+
+    // ---------- Verification (demo OTP) ----------
+    let verifyKind = null;
+    function openVerify(kind) {
+      verifyKind = kind;
+      $('verifyTitle').textContent = kind === 'email' ? 'Verifikasi Email' : 'Verifikasi Nomor Telepon';
+      $('verifyTarget').textContent = profile[kind];
+      $('otp').value = '';
+      $('g-otp').classList.remove('invalid');
+      openModal('verifyModal');
+      $('otp').focus();
+    }
+    $('otp').addEventListener('input', e => {
+      e.target.value = e.target.value.replace(/\D/g, '');
+      $('g-otp').classList.remove('invalid');
+    });
+    $('verifyForm').addEventListener('submit', e => {
+      e.preventDefault();
+      // Demo: kode tetap 123456 — di produksi kode dikirim & dicek oleh server
+      if (!setInvalid('g-otp', $('otp').value !== '123456')) return;
+      profile[verifyKind + 'Verified'] = true;
+      saveProfile();
+      render();
+      closeModals();
+      toast('✓ ' + (verifyKind === 'email' ? 'Email' : 'Nomor telepon') + ' berhasil diverifikasi');
+    });
+
+    render();
+  </script>
+</body>
+</html>
