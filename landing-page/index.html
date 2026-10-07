@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proyeka — Aplikasi Manajemen Proyek untuk Tim Modern</title>
+  <meta name="description" content="Proyeka membantu tim merencanakan, melacak, dan menyelesaikan proyek tepat waktu. Kanban, Gantt, laporan real-time, dan kolaborasi dalam satu platform." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --primary-light: #eef2ff;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --dark: #0f172a;
+      --text: #334155;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --bg-soft: #f8fafc;
+      --white: #ffffff;
+      --radius: 14px;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+      --shadow: 0 10px 30px -10px rgba(15, 23, 42, .15);
+      --shadow-lg: 0 30px 60px -20px rgba(15, 23, 42, .25);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background: var(--white);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img, svg { display: block; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    section { padding: 100px 0; }
+
+    /* ---------- Buttons ---------- */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 22px; border-radius: 10px; font-weight: 600; font-size: 15px;
+      border: 1px solid transparent; cursor: pointer; transition: all .2s ease;
+      font-family: inherit;
+    }
+    .btn-primary { background: var(--primary); color: var(--white); box-shadow: 0 6px 20px -6px rgba(79, 70, 229, .6); }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-outline { background: var(--white); color: var(--dark); border-color: var(--border); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-white { background: var(--white); color: var(--primary); }
+    .btn-white:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+    .btn-lg { padding: 15px 28px; font-size: 16px; }
+
+    /* ---------- Section headings ---------- */
+    .eyebrow {
+      display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--primary); background: var(--primary-light);
+      padding: 6px 14px; border-radius: 999px; margin-bottom: 16px;
+    }
+    .section-head { text-align: center; max-width: 680px; margin: 0 auto 60px; }
+    .section-head h2 { font-size: clamp(28px, 4vw, 42px); color: var(--dark); line-height: 1.2; font-weight: 800; letter-spacing: -.02em; }
+    .section-head p { margin-top: 16px; font-size: 18px; color: var(--muted); }
+
+    /* ---------- Navbar ---------- */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255, 255, 255, .85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid transparent; transition: border-color .2s, box-shadow .2s;
+    }
+    .navbar.scrolled { border-color: var(--border); box-shadow: var(--shadow-sm); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 22px; color: var(--dark); }
+    .logo-mark {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: grid; place-items: center;
+    }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a { font-size: 15px; font-weight: 500; color: var(--text); transition: color .2s; }
+    .nav-links a:hover { color: var(--primary); }
+    .nav-actions { display: flex; gap: 12px; align-items: center; }
+    .nav-login { font-weight: 600; font-size: 15px; padding: 10px 14px; }
+    .menu-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      padding: 80px 0 100px; position: relative; overflow: hidden;
+      background:
+        radial-gradient(ellipse 60% 50% at 80% 0%, rgba(6, 182, 212, .12), transparent),
+        radial-gradient(ellipse 60% 50% at 10% 10%, rgba(79, 70, 229, .12), transparent);
+    }
+    .hero-content { text-align: center; max-width: 820px; margin: 0 auto; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 6px 6px 14px;
+      background: var(--white); border: 1px solid var(--border); border-radius: 999px;
+      font-size: 14px; font-weight: 500; box-shadow: var(--shadow-sm); margin-bottom: 28px;
+    }
+    .badge span { background: var(--primary); color: var(--white); padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .hero h1 {
+      font-size: clamp(38px, 6vw, 66px); line-height: 1.08; font-weight: 800;
+      color: var(--dark); letter-spacing: -.035em;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero p.lead { font-size: 20px; color: var(--muted); margin: 24px auto 36px; max-width: 640px; }
+    .hero-cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .hero-note { margin-top: 18px; font-size: 14px; color: var(--muted); display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+    .hero-note span { display: inline-flex; align-items: center; gap: 6px; }
+
+    /* Dashboard mockup */
+    .mockup {
+      margin: 70px auto 0; max-width: 1080px; background: var(--white);
+      border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    .mockup-bar { display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--bg-soft); }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .mockup-url { margin-left: 16px; flex: 1; max-width: 340px; background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 5px 12px; font-size: 12px; color: var(--muted); }
+    .mockup-body { display: grid; grid-template-columns: 210px 1fr; min-height: 440px; }
+    .mock-side { border-right: 1px solid var(--border); padding: 20px 14px; background: var(--bg-soft); }
+    .mock-side .item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 4px; }
+    .mock-side .item.active { background: var(--white); color: var(--primary); box-shadow: var(--shadow-sm); }
+    .mock-side .ico { width: 16px; height: 16px; border-radius: 4px; background: currentColor; opacity: .5; }
+    .mock-side .label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin: 18px 12px 8px; font-weight: 700; }
+    .proj-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .mock-main { padding: 22px; }
+    .mock-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .mock-head h4 { color: var(--dark); font-size: 18px; }
+    .avatars { display: flex; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--white);
+      margin-left: -8px; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--white);
+    }
+    .kanban { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .col { background: var(--bg-soft); border-radius: 12px; padding: 12px; }
+    .col-title { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 12px; padding: 0 4px; }
+    .col-title small { background: var(--border); border-radius: 999px; padding: 0 8px; font-weight: 600; color: var(--muted); }
+    .card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; box-shadow: var(--shadow-sm); }
+    .tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-bottom: 8px; }
+    .card p { font-size: 13px; font-weight: 600; color: var(--dark); margin-bottom: 10px; line-height: 1.4; }
+    .card-foot { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); }
+    .card-foot .avatar { width: 22px; height: 22px; font-size: 9px; margin: 0; border: none; }
+    .progress { height: 5px; background: var(--border); border-radius: 999px; overflow: hidden; margin-bottom: 10px; }
+    .progress div { height: 100%; border-radius: 999px; }
+
+    /* ---------- Logos ---------- */
+    .logos { padding: 50px 0; border-bottom: 1px solid var(--border); }
+    .logos p { text-align: center; font-size: 14px; color: var(--muted); font-weight: 500; margin-bottom: 28px; }
+    .logo-row { display: flex; justify-content: center; align-items: center; gap: 56px; flex-wrap: wrap; }
+    .logo-row div { font-size: 22px; font-weight: 800; color: #94a3b8; letter-spacing: -.02em; display: flex; align-items: center; gap: 8px; filter: grayscale(1); opacity: .8; }
+
+    /* ---------- Features ---------- */
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .feature {
+      padding: 32px; border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--white); transition: all .25s ease;
+    }
+    .feature:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: transparent; }
+    .feature-icon { width: 52px; height: 52px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 20px; }
+    .feature h3 { font-size: 19px; color: var(--dark); margin-bottom: 10px; font-weight: 700; }
+    .feature p { color: var(--muted); font-size: 15px; }
+
+    /* ---------- Showcase ---------- */
+    .showcase { background: var(--bg-soft); }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .split + .split { margin-top: 110px; }
+    .split.reverse .split-text { order: 2; }
+    .split-text h2 { font-size: clamp(26px, 3.4vw, 38px); color: var(--dark); line-height: 1.2; font-weight: 800; letter-spacing: -.02em; margin-bottom: 18px; }
+    .split-text > p { font-size: 17px; color: var(--muted); margin-bottom: 28px; }
+    .check-list { list-style: none; display: grid; gap: 14px; }
+    .check-list li { display: flex; gap: 12px; align-items: flex-start; font-weight: 500; color: var(--dark); }
+    .check { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: #d1fae5; display: grid; place-items: center; }
+    .visual { background: var(--white); border-radius: 18px; border: 1px solid var(--border); box-shadow: var(--shadow); padding: 28px; }
+
+    /* Gantt */
+    .gantt-row { display: grid; grid-template-columns: 120px 1fr; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px dashed var(--border); font-size: 13px; font-weight: 600; color: var(--dark); }
+    .gantt-row:last-child { border: none; }
+    .gantt-track { position: relative; height: 26px; background: repeating-linear-gradient(90deg, transparent, transparent calc(100%/7 - 1px), var(--border) calc(100%/7 - 1px), var(--border) calc(100%/7)); border-radius: 6px; }
+    .gantt-bar { position: absolute; top: 3px; height: 20px; border-radius: 6px; color: var(--white); font-size: 10px; font-weight: 700; padding: 0 8px; display: flex; align-items: center; }
+    .gantt-days { display: grid; grid-template-columns: 120px 1fr; gap: 14px; font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+    .gantt-days div:last-child { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }
+
+    /* Report */
+    .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+    .stat-box { background: var(--bg-soft); border-radius: 12px; padding: 14px; }
+    .stat-box small { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .stat-box strong { display: block; font-size: 22px; color: var(--dark); }
+    .stat-box em { font-style: normal; font-size: 12px; font-weight: 700; color: var(--success); }
+    .chart { display: flex; align-items: flex-end; gap: 12px; height: 170px; padding-top: 10px; border-bottom: 1px solid var(--border); }
+    .chart .bar { flex: 1; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, var(--primary), #818cf8); position: relative; }
+    .chart .bar.alt { background: linear-gradient(180deg, var(--accent), #67e8f9); }
+    .chart-labels { display: flex; gap: 12px; margin-top: 8px; }
+    .chart-labels span { flex: 1; text-align: center; font-size: 11px; color: var(--muted); font-weight: 600; }
+
+    /* ---------- Steps ---------- */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; position: relative; }
+    .step { text-align: center; padding: 0 12px; position: relative; }
+    .step-num {
+      width: 64px; height: 64px; margin: 0 auto 22px; border-radius: 50%;
+      background: var(--white); border: 2px solid var(--primary); color: var(--primary);
+      display: grid; place-items: center; font-size: 22px; font-weight: 800; position: relative; z-index: 1;
+    }
+    .steps::before { content: ""; position: absolute; top: 32px; left: 18%; right: 18%; border-top: 2px dashed #c7d2fe; }
+    .step h3 { font-size: 20px; color: var(--dark); margin-bottom: 10px; }
+    .step p { color: var(--muted); }
+
+    /* ---------- Stats band ---------- */
+    .stats-band { background: var(--dark); color: var(--white); padding: 70px 0; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; }
+    .stats-grid strong { display: block; font-size: 46px; font-weight: 800; letter-spacing: -.02em; background: linear-gradient(135deg, #a5b4fc, #67e8f9); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .stats-grid span { color: #94a3b8; font-weight: 500; }
+
+    /* ---------- Testimonials ---------- */
+    .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .testi { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px; display: flex; flex-direction: column; }
+    .stars { color: var(--warning); font-size: 18px; letter-spacing: 2px; margin-bottom: 16px; }
+    .testi blockquote { font-size: 16px; color: var(--dark); flex: 1; margin-bottom: 24px; }
+    .person { display: flex; align-items: center; gap: 12px; }
+    .person .avatar { width: 46px; height: 46px; margin: 0; font-size: 15px; border: none; }
+    .person strong { display: block; color: var(--dark); font-size: 15px; }
+    .person small { color: var(--muted); font-size: 13px; }
+
+    /* ---------- Pricing ---------- */
+    .pricing { background: var(--bg-soft); }
+    .billing-toggle { display: flex; justify-content: center; align-items: center; gap: 14px; margin: -30px 0 50px; font-weight: 600; }
+    .billing-toggle .save { background: #d1fae5; color: #047857; font-size: 12px; padding: 3px 10px; border-radius: 999px; }
+    .switch { width: 52px; height: 28px; background: var(--primary); border-radius: 999px; position: relative; cursor: pointer; border: none; }
+    .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--white); transition: transform .2s; }
+    .switch.yearly::after { transform: translateX(24px); }
+    .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: stretch; }
+    .plan { background: var(--white); border: 1px solid var(--border); border-radius: 18px; padding: 36px 32px; display: flex; flex-direction: column; position: relative; }
+    .plan.popular { border: 2px solid var(--primary); box-shadow: var(--shadow-lg); transform: scale(1.03); }
+    .plan .ribbon { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--primary); color: var(--white); font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 999px; white-space: nowrap; }
+    .plan h3 { font-size: 20px; color: var(--dark); }
+    .plan .desc { color: var(--muted); font-size: 14px; margin: 6px 0 22px; min-height: 44px; }
+    .price { display: flex; align-items: baseline; gap: 6px; margin-bottom: 24px; }
+    .price strong { font-size: 40px; color: var(--dark); font-weight: 800; letter-spacing: -.02em; }
+    .price span { color: var(--muted); font-size: 14px; }
+    .plan .btn { width: 100%; margin-bottom: 28px; }
+    .plan ul { list-style: none; display: grid; gap: 12px; font-size: 15px; }
+    .plan li { display: flex; gap: 10px; align-items: flex-start; }
+    .plan li svg { flex-shrink: 0; margin-top: 3px; }
+
+    /* ---------- FAQ ---------- */
+    .faq-list { max-width: 800px; margin: 0 auto; }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-q {
+      width: 100%; text-align: left; background: none; border: none; cursor: pointer;
+      padding: 24px 0; font-size: 17px; font-weight: 700; color: var(--dark); font-family: inherit;
+      display: flex; justify-content: space-between; align-items: center; gap: 20px;
+    }
+    .faq-q .plus { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: grid; place-items: center; font-size: 18px; transition: transform .25s; }
+    .faq-item.open .plus { transform: rotate(45deg); }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+    .faq-a p { padding-bottom: 24px; color: var(--muted); }
+
+    /* ---------- CTA ---------- */
+    .cta-box {
+      background: linear-gradient(135deg, var(--primary) 0%, #6366f1 50%, var(--accent) 100%);
+      border-radius: 24px; padding: 70px 40px; text-align: center; color: var(--white);
+      position: relative; overflow: hidden;
+    }
+    .cta-box::before, .cta-box::after { content: ""; position: absolute; border-radius: 50%; background: rgba(255, 255, 255, .08); }
+    .cta-box::before { width: 360px; height: 360px; top: -160px; right: -80px; }
+    .cta-box::after { width: 260px; height: 260px; bottom: -140px; left: -60px; }
+    .cta-box h2 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -.02em; line-height: 1.15; position: relative; }
+    .cta-box p { font-size: 18px; opacity: .9; margin: 16px auto 32px; max-width: 560px; position: relative; }
+    .cta-form { display: flex; gap: 10px; max-width: 480px; margin: 0 auto; position: relative; }
+    .cta-form input { flex: 1; padding: 15px 18px; border-radius: 10px; border: none; font-size: 15px; font-family: inherit; outline: none; }
+    .cta-form .btn { background: var(--dark); color: var(--white); }
+    .cta-form .btn:hover { background: #1e293b; }
+    .form-msg { margin-top: 14px; font-size: 14px; font-weight: 600; min-height: 20px; position: relative; }
+
+    /* ---------- Footer ---------- */
+    footer { background: var(--dark); color: #94a3b8; padding: 70px 0 30px; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 40px; }
+    footer .logo { color: var(--white); margin-bottom: 16px; }
+    footer .about { font-size: 14px; max-width: 280px; margin-bottom: 20px; }
+    footer h4 { color: var(--white); font-size: 15px; margin-bottom: 16px; }
+    footer ul { list-style: none; display: grid; gap: 10px; font-size: 14px; }
+    footer ul a:hover { color: var(--white); }
+    .socials { display: flex; gap: 10px; }
+    .socials a { width: 38px; height: 38px; border-radius: 10px; background: #1e293b; display: grid; place-items: center; transition: background .2s; }
+    .socials a:hover { background: var(--primary); }
+    .footer-bottom { margin-top: 50px; padding-top: 26px; border-top: 1px solid #1e293b; display: flex; justify-content: space-between; font-size: 14px; flex-wrap: wrap; gap: 12px; }
+    .footer-bottom div { display: flex; gap: 24px; }
+
+    /* ---------- Reveal animation ---------- */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1024px) {
+      .features-grid, .testi-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: repeat(3, 1fr); }
+      .footer-grid > div:first-child { grid-column: 1 / -1; }
+      .split { gap: 48px; }
+    }
+    @media (max-width: 860px) {
+      section { padding: 72px 0; }
+      .nav-links, .nav-actions .nav-login, .nav-actions .btn { display: none; }
+      .menu-toggle { display: block; }
+      .nav-links.open {
+        display: flex; flex-direction: column; gap: 0; position: absolute; top: 72px; left: 0; right: 0;
+        background: var(--white); border-bottom: 1px solid var(--border); box-shadow: var(--shadow); padding: 8px 24px 20px;
+      }
+      .nav-links.open li a { display: block; padding: 14px 0; border-bottom: 1px solid var(--border); }
+      .nav-links.open .mobile-cta { display: block; padding-top: 16px; }
+      .nav-links.open .mobile-cta .btn { display: flex; width: 100%; }
+      .mockup-body { grid-template-columns: 1fr; }
+      .mock-side { display: none; }
+      .split, .price-grid, .steps { grid-template-columns: 1fr; }
+      .split.reverse .split-text { order: 0; }
+      .steps::before { display: none; }
+      .plan.popular { transform: none; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 40px; }
+    }
+    @media (max-width: 640px) {
+      .features-grid, .testi-grid { grid-template-columns: 1fr; }
+      .kanban { grid-template-columns: 1fr; }
+      .kanban .col:nth-child(n+2) { display: none; }
+      .cta-form { flex-direction: column; }
+      .footer-grid { grid-template-columns: repeat(2, 1fr); }
+      .logo-row { gap: 32px; }
+      .logo-row div { font-size: 18px; }
+      .stat-row { grid-template-columns: 1fr 1fr; }
+      .stat-row .stat-box:last-child { display: none; }
+    }
+    .mobile-cta { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { opacity: 1; transform: none; transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="logo" aria-label="Proyeka beranda">
+        <div class="logo-mark">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        Proyeka
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#fitur">Fitur</a></li>
+        <li><a href="#cara-kerja">Cara Kerja</a></li>
+        <li><a href="#testimoni">Testimoni</a></li>
+        <li><a href="#harga">Harga</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li class="mobile-cta"><a href="login.html" class="btn btn-outline">Masuk</a><a href="register.html" class="btn btn-primary" style="margin-top:10px">Coba Gratis</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="login.html" class="nav-login">Masuk</a>
+        <a href="register.html" class="btn btn-primary">Coba Gratis</a>
+        <button class="menu-toggle" id="menuToggle" aria-label="Buka menu" aria-expanded="false">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================= HERO ================= -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <a href="#fitur" class="badge">Baru: Asisten AI untuk perencanaan sprint <span>Lihat →</span></a>
+          <h1>Kelola semua proyek tim Anda <span class="gradient-text">dalam satu tempat</span></h1>
+          <p class="lead">Rencanakan, lacak, dan selesaikan pekerjaan lebih cepat. Proyeka menyatukan tugas, timeline, dokumen, dan komunikasi tim agar setiap proyek selesai tepat waktu.</p>
+          <div class="hero-cta">
+            <a href="register.html" class="btn btn-primary btn-lg">Mulai Gratis 14 Hari
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+            <a href="#cara-kerja" class="btn btn-outline btn-lg">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              Lihat Demo
+            </a>
+          </div>
+          <div class="hero-note">
+            <span>✓ Tanpa kartu kredit</span>
+            <span>✓ Setup dalam 2 menit</span>
+            <span>✓ Batalkan kapan saja</span>
+          </div>
+        </div>
+
+        <!-- Dashboard mockup -->
+        <div class="mockup reveal" aria-hidden="true">
+          <div class="mockup-bar">
+            <div class="dot" style="background:#ff5f57"></div>
+            <div class="dot" style="background:#febc2e"></div>
+            <div class="dot" style="background:#28c840"></div>
+            <div class="mockup-url">app.proyeka.id/proyek/website-redesign</div>
+          </div>
+          <div class="mockup-body">
+            <aside class="mock-side">
+              <div class="item"><div class="ico"></div>Beranda</div>
+              <div class="item active"><div class="ico"></div>Proyek Saya</div>
+              <div class="item"><div class="ico"></div>Kotak Masuk</div>
+              <div class="item"><div class="ico"></div>Laporan</div>
+              <div class="item"><div class="ico"></div>Tim</div>
+              <div class="label">Proyek</div>
+              <div class="item"><div class="proj-dot" style="background:#4f46e5"></div>Website Redesign</div>
+              <div class="item"><div class="proj-dot" style="background:#06b6d4"></div>Aplikasi Mobile</div>
+              <div class="item"><div class="proj-dot" style="background:#f59e0b"></div>Kampanye Q4</div>
+              <div class="item"><div class="proj-dot" style="background:#10b981"></div>Onboarding HR</div>
+            </aside>
+            <div class="mock-main">
+              <div class="mock-head">
+                <h4>Website Redesign</h4>
+                <div class="avatars">
+                  <div class="avatar" style="background:#4f46e5">AR</div>
+                  <div class="avatar" style="background:#06b6d4">SN</div>
+                  <div class="avatar" style="background:#f59e0b">BP</div>
+                  <div class="avatar" style="background:#10b981">+4</div>
+                </div>
+              </div>
+              <div class="kanban">
+                <div class="col">
+                  <div class="col-title">Akan Dikerjakan <small>4</small></div>
+                  <div class="card">
+                    <span class="tag" style="background:#fef3c7;color:#b45309">Riset</span>
+                    <p>Wawancara pengguna & analisis kompetitor</p>
+                    <div class="card-foot"><span>📅 12 Okt</span><div class="avatar" style="background:#f59e0b">BP</div></div>
+                  </div>
+                  <div class="card">
+                    <span class="tag" style="background:#e0e7ff;color:#4338ca">Konten</span>
+                    <p>Susun copywriting halaman produk</p>
+                    <div class="card-foot"><span>📅 15 Okt</span><div class="avatar" style="background:#4f46e5">AR</div></div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="col-title">Sedang Berjalan <small>3</small></div>
+                  <div class="card">
+                    <span class="tag" style="background:#cffafe;color:#0e7490">Desain</span>
+                    <p>Wireframe & prototipe halaman utama</p>
+                    <div class="progress"><div style="width:68%;background:#06b6d4"></div></div>
+                    <div class="card-foot"><span>💬 8 · 📎 3</span><div class="avatar" style="background:#06b6d4">SN</div></div>
+                  </div>
+                  <div class="card">
+                    <span class="tag" style="background:#fee2e2;color:#b91c1c">Prioritas</span>
+                    <p>Integrasi payment gateway</p>
+                    <div class="progress"><div style="width:40%;background:#ef4444"></div></div>
+                    <div class="card-foot"><span>💬 5 · 📎 1</span><div class="avatar" style="background:#4f46e5">AR</div></div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="col-title">Selesai <small>9</small></div>
+                  <div class="card">
+                    <span class="tag" style="background:#d1fae5;color:#047857">Selesai</span>
+                    <p>Audit SEO & performa situs lama</p>
+                    <div class="progress"><div style="width:100%;background:#10b981"></div></div>
+                    <div class="card-foot"><span>✓ 4 Okt</span><div class="avatar" style="background:#10b981">DK</div></div>
+                  </div>
+                  <div class="card">
+                    <span class="tag" style="background:#d1fae5;color:#047857">Selesai</span>
+                    <p>Finalisasi brand guideline</p>
+                    <div class="progress"><div style="width:100%;background:#10b981"></div></div>
+                    <div class="card-foot"><span>✓ 2 Okt</span><div class="avatar" style="background:#f59e0b">BP</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= LOGOS ================= -->
+    <div class="logos">
+      <div class="container">
+        <p>Dipercaya oleh lebih dari 12.000 tim di seluruh Indonesia</p>
+        <div class="logo-row">
+          <div>◆ Nusantara</div>
+          <div>▲ Karya Digital</div>
+          <div>● Samudra Tech</div>
+          <div>■ Bumi Logistik</div>
+          <div>✦ Garuda Labs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= FEATURES ================= -->
+    <section id="fitur">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">Fitur Unggulan</span>
+          <h2>Semua yang dibutuhkan tim Anda untuk bekerja lebih produktif</h2>
+          <p>Dari perencanaan hingga pelaporan, Proyeka menyediakan alat lengkap yang fleksibel untuk setiap gaya kerja.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature reveal">
+            <div class="feature-icon" style="background:#eef2ff">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+            </div>
+            <h3>Papan Kanban</h3>
+            <p>Visualisasikan alur kerja dengan drag-and-drop. Pantau status setiap tugas secara instan.</p>
+          </div>
+          <div class="feature reveal">
+            <div class="feature-icon" style="background:#ecfeff">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="14" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="6" y1="18" x2="16" y2="18"/></svg>
+            </div>
+            <h3>Gantt Chart & Timeline</h3>
+            <p>Atur jadwal, dependensi, dan milestone. Deteksi keterlambatan sebelum menjadi masalah.</p>
+          </div>
+          <div class="feature reveal">
+            <div class="feature-icon" style="background:#ecfdf5">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h3>Kolaborasi Real-time</h3>
+            <p>Komentar, mention, dan berbagi file langsung di setiap tugas. Tidak perlu lagi email bolak-balik.</p>
+          </div>
+          <div class="feature reveal">
+            <div class="feature-icon" style="background:#fffbeb">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div>
+            <h3>Laporan & Analitik</h3>
+            <p>Dashboard otomatis untuk progres, beban kerja tim, dan anggaran. Ekspor ke PDF atau Excel.</p>
+          </div>
+          <div class="feature reveal">
+            <div class="feature-icon" style="background:#fef2f2">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <h3>Pelacakan Waktu</h3>
+            <p>Catat jam kerja per tugas dengan timer bawaan. Ideal untuk penagihan klien dan evaluasi efisiensi.</p>
+          </div>
+          <div class="feature reveal">
+            <div class="feature-icon" style="background:#f5f3ff">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </div>
+            <h3>Otomasi & Integrasi</h3>
+            <p>Hubungkan dengan Slack, Google Drive, GitHub, dan 50+ aplikasi lain. Otomatiskan tugas berulang.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SHOWCASE ================= -->
+    <section class="showcase">
+      <div class="container">
+        <div class="split">
+          <div class="split-text reveal">
+            <span class="eyebrow">Perencanaan</span>
+            <h2>Timeline yang jelas, tenggat yang selalu terpenuhi</h2>
+            <p>Lihat gambaran besar proyek dalam satu layar. Atur ulang jadwal cukup dengan menggeser, dan Proyeka otomatis menyesuaikan tugas yang saling bergantung.</p>
+            <ul class="check-list">
+              <li><span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Dependensi tugas otomatis</li>
+              <li><span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Milestone dan critical path</li>
+              <li><span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Notifikasi pengingat tenggat</li>
+            </ul>
+          </div>
+          <div class="visual reveal" aria-hidden="true">
+            <div class="gantt-days"><div></div><div><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span></div></div>
+            <div class="gantt-row">Riset Pengguna<div class="gantt-track"><div class="gantt-bar" style="left:0;width:30%;background:#f59e0b">BP</div></div></div>
+            <div class="gantt-row">Wireframe<div class="gantt-track"><div class="gantt-bar" style="left:22%;width:36%;background:#06b6d4">SN</div></div></div>
+            <div class="gantt-row">Desain UI<div class="gantt-track"><div class="gantt-bar" style="left:44%;width:34%;background:#4f46e5">AR</div></div></div>
+            <div class="gantt-row">Development<div class="gantt-track"><div class="gantt-bar" style="left:58%;width:42%;background:#8b5cf6">DK</div></div></div>
+            <div class="gantt-row">Pengujian QA<div class="gantt-track"><div class="gantt-bar" style="left:80%;width:20%;background:#10b981">QA</div></div></div>
+          </div>
+        </div>
+
+        <div class="split reverse">
+          <div class="split-text reveal">
+            <span class="eyebrow">Wawasan</span>
+            <h2>Keputusan lebih tepat dengan data real-time</h2>
+            <p>Dashboard analitik menampilkan kesehatan proyek, produktivitas tim, dan penggunaan anggaran — diperbarui setiap saat tanpa perlu menyusun laporan manual.</p>
+            <ul class="check-list">
+              <li><span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Grafik burndown & velocity sprint</li>
+              <li><span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Distribusi beban kerja per anggota</li>
+              <li><span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>Laporan terjadwal ke email stakeholder</li>
+            </ul>
+          </div>
+          <div class="visual reveal" aria-hidden="true">
+            <div class="stat-row">
+              <div class="stat-box"><small>Tugas Selesai</small><strong>248</strong><em>↑ 18%</em></div>
+              <div class="stat-box"><small>Tepat Waktu</small><strong>94%</strong><em>↑ 6%</em></div>
+              <div class="stat-box"><small>Jam Tercatat</small><strong>1.320</strong><em>↑ 11%</em></div>
+            </div>
+            <div class="chart">
+              <div class="bar" style="height:45%"></div>
+              <div class="bar alt" style="height:60%"></div>
+              <div class="bar" style="height:52%"></div>
+              <div class="bar alt" style="height:75%"></div>
+              <div class="bar" style="height:68%"></div>
+              <div class="bar alt" style="height:88%"></div>
+              <div class="bar" style="height:96%"></div>
+            </div>
+            <div class="chart-labels"><span>Apr</span><span>Mei</span><span>Jun</span><span>Jul</span><span>Agu</span><span>Sep</span><span>Okt</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= HOW IT WORKS ================= -->
+    <section id="cara-kerja">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">Cara Kerja</span>
+          <h2>Mulai dalam 3 langkah sederhana</h2>
+          <p>Tidak perlu pelatihan panjang. Tim Anda bisa langsung produktif di hari pertama.</p>
+        </div>
+        <div class="steps">
+          <div class="step reveal">
+            <div class="step-num">1</div>
+            <h3>Buat Proyek</h3>
+            <p>Pilih dari 30+ template siap pakai atau mulai dari awal sesuai kebutuhan tim Anda.</p>
+          </div>
+          <div class="step reveal">
+            <div class="step-num">2</div>
+            <h3>Undang Tim</h3>
+            <p>Tambahkan anggota, atur peran dan hak akses, lalu bagikan tugas dengan satu klik.</p>
+          </div>
+          <div class="step reveal">
+            <div class="step-num">3</div>
+            <h3>Pantau & Selesaikan</h3>
+            <p>Lacak progres secara real-time dan rayakan setiap milestone yang tercapai bersama.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= STATS ================= -->
+    <div class="stats-band">
+      <div class="container stats-grid">
+        <div><strong data-count="12000" data-suffix="+">0</strong><span>Tim Aktif</span></div>
+        <div><strong data-count="2" data-suffix="jt+">0</strong><span>Tugas Diselesaikan</span></div>
+        <div><strong data-count="38" data-suffix="%">0</strong><span>Peningkatan Produktivitas</span></div>
+        <div><strong data-count="99.9" data-suffix="%" data-decimal="1">0</strong><span>Uptime Terjamin</span></div>
+      </div>
+    </div>
+
+    <!-- ================= TESTIMONIALS ================= -->
+    <section id="testimoni">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">Testimoni</span>
+          <h2>Disukai oleh tim dari berbagai industri</h2>
+        </div>
+        <div class="testi-grid">
+          <div class="testi reveal">
+            <div class="stars">★★★★★</div>
+            <blockquote>"Sejak pakai Proyeka, rapat koordinasi mingguan kami berkurang setengahnya. Semua orang tahu apa yang harus dikerjakan tanpa perlu ditanya."</blockquote>
+            <div class="person"><div class="avatar" style="background:#4f46e5">RW</div><div><strong>Rina Wijaya</strong><small>Head of Product, Karya Digital</small></div></div>
+          </div>
+          <div class="testi reveal">
+            <div class="stars">★★★★★</div>
+            <blockquote>"Gantt chart-nya sangat membantu untuk proyek konstruksi kami yang punya banyak dependensi. Klien juga senang bisa melihat progres langsung."</blockquote>
+            <div class="person"><div class="avatar" style="background:#06b6d4">HS</div><div><strong>Hendra Saputra</strong><small>Project Manager, Bumi Logistik</small></div></div>
+          </div>
+          <div class="testi reveal">
+            <div class="stars">★★★★★</div>
+            <blockquote>"Onboarding 40 orang hanya butuh satu hari. Antarmukanya intuitif dan fitur laporannya menghemat waktu saya berjam-jam setiap minggu."</blockquote>
+            <div class="person"><div class="avatar" style="background:#f59e0b">DA</div><div><strong>Dewi Anggraini</strong><small>COO, Samudra Tech</small></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PRICING ================= -->
+    <section class="pricing" id="harga">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">Harga</span>
+          <h2>Paket yang tumbuh bersama tim Anda</h2>
+          <p>Mulai gratis, upgrade kapan saja. Semua paket berbayar termasuk uji coba 14 hari.</p>
+        </div>
+        <div class="billing-toggle">
+          <span>Bulanan</span>
+          <button class="switch" id="billingSwitch" aria-label="Ganti periode tagihan" aria-pressed="false"></button>
+          <span>Tahunan</span>
+          <span class="save">Hemat 20%</span>
+        </div>
+        <div class="price-grid">
+          <div class="plan reveal">
+            <h3>Starter</h3>
+            <p class="desc">Untuk individu dan tim kecil yang baru memulai.</p>
+            <div class="price"><strong>Gratis</strong></div>
+            <a href="register.html" class="btn btn-outline">Mulai Sekarang</a>
+            <ul>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Hingga 5 anggota</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>3 proyek aktif</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Papan Kanban & daftar tugas</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Penyimpanan 1 GB</li>
+            </ul>
+          </div>
+          <div class="plan popular reveal">
+            <span class="ribbon">Paling Populer</span>
+            <h3>Profesional</h3>
+            <p class="desc">Untuk tim yang berkembang dan butuh fitur lengkap.</p>
+            <div class="price"><strong data-monthly="Rp79rb" data-yearly="Rp63rb">Rp79rb</strong><span>/ pengguna / bulan</span></div>
+            <a href="register.html" class="btn btn-primary">Coba Gratis 14 Hari</a>
+            <ul>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Anggota tanpa batas</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Proyek tanpa batas</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Gantt chart & pelacakan waktu</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Laporan & dashboard analitik</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Integrasi 50+ aplikasi</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Penyimpanan 100 GB</li>
+            </ul>
+          </div>
+          <div class="plan reveal">
+            <h3>Enterprise</h3>
+            <p class="desc">Untuk organisasi besar dengan kebutuhan keamanan khusus.</p>
+            <div class="price"><strong>Kustom</strong></div>
+            <a href="#mulai" class="btn btn-outline">Hubungi Sales</a>
+            <ul>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Semua fitur Profesional</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>SSO / SAML & audit log</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Opsi on-premise / server lokal</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>SLA 99,9% & dukungan prioritas</li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Account manager khusus</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FAQ ================= -->
+    <section id="faq">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">FAQ</span>
+          <h2>Pertanyaan yang sering diajukan</h2>
+        </div>
+        <div class="faq-list">
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">Apakah benar-benar gratis untuk dicoba?<span class="plus">+</span></button>
+            <div class="faq-a"><p>Ya. Paket Starter gratis selamanya, dan paket Profesional bisa dicoba gratis selama 14 hari tanpa memasukkan kartu kredit.</p></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">Apakah data saya aman?<span class="plus">+</span></button>
+            <div class="faq-a"><p>Data dienkripsi saat transit (TLS 1.3) dan saat disimpan (AES-256), dengan backup harian otomatis. Server kami berlokasi di Indonesia dan mematuhi UU Pelindungan Data Pribadi.</p></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">Bisakah saya mengimpor data dari aplikasi lain?<span class="plus">+</span></button>
+            <div class="faq-a"><p>Bisa. Proyeka mendukung impor dari Trello, Asana, Jira, Monday.com, serta file CSV dan Excel hanya dengan beberapa klik.</p></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">Metode pembayaran apa saja yang tersedia?<span class="plus">+</span></button>
+            <div class="faq-a"><p>Kami menerima transfer bank, kartu kredit/debit, virtual account, serta e-wallet. Untuk Enterprise tersedia invoice dengan termin pembayaran.</p></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">Apakah ada aplikasi mobile?<span class="plus">+</span></button>
+            <div class="faq-a"><p>Ada. Aplikasi Proyeka tersedia untuk Android dan iOS, lengkap dengan notifikasi push dan mode offline.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CTA ================= -->
+    <section id="mulai" style="padding-top:0">
+      <div class="container">
+        <div class="cta-box reveal">
+          <h2>Siap membawa tim Anda ke level berikutnya?</h2>
+          <p>Bergabunglah dengan 12.000+ tim yang telah menyelesaikan proyek lebih cepat bersama Proyeka.</p>
+          <form class="cta-form" id="ctaForm" novalidate>
+            <input type="email" id="ctaEmail" placeholder="Masukkan email kerja Anda" aria-label="Email" required />
+            <button type="submit" class="btn btn-lg">Mulai Gratis</button>
+          </form>
+          <div class="form-msg" id="formMsg" role="status"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="#" class="logo">
+            <div class="logo-mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+            Proyeka
+          </a>
+          <p class="about">Platform manajemen proyek untuk tim modern Indonesia. Rencanakan, kolaborasi, dan selesaikan pekerjaan dengan lebih baik.</p>
+          <div class="socials">
+            <a href="#" aria-label="LinkedIn"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05C20.6 8.65 21 11.3 21 14.6V21h-4v-5.6c0-1.34-.03-3.06-1.86-3.06-1.87 0-2.14 1.46-2.14 2.96V21H9z"/></svg></a>
+            <a href="#" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff"/></svg></a>
+            <a href="#" aria-label="X"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M18.9 2H22l-7.4 8.5L23.3 22h-6.8l-5.3-7-6.1 7H2l7.9-9.1L1.6 2h7l4.8 6.4L18.9 2zm-1.2 18h1.9L7.4 3.9H5.4z"/></svg></a>
+            <a href="#" aria-label="YouTube"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.8 15.1V8.9l5.7 3.1z"/></svg></a>
+          </div>
+        </div>
+        <div>
+          <h4>Produk</h4>
+          <ul><li><a href="#fitur">Fitur</a></li><li><a href="#harga">Harga</a></li><li><a href="#">Integrasi</a></li><li><a href="#">Aplikasi Mobile</a></li></ul>
+        </div>
+        <div>
+          <h4>Perusahaan</h4>
+          <ul><li><a href="#">Tentang Kami</a></li><li><a href="#">Karier</a></li><li><a href="#">Blog</a></li><li><a href="#">Kontak</a></li></ul>
+        </div>
+        <div>
+          <h4>Sumber Daya</h4>
+          <ul><li><a href="#">Pusat Bantuan</a></li><li><a href="#">Template</a></li><li><a href="#">Webinar</a></li><li><a href="#">API Docs</a></li></ul>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <ul><li><a href="#">Kebijakan Privasi</a></li><li><a href="#">Syarat Layanan</a></li><li><a href="#">Keamanan</a></li></ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span id="year"></span> Proyeka. Hak cipta dilindungi.</span>
+        <div><a href="#">Privasi</a><a href="#">Ketentuan</a><a href="#">Cookie</a></div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Navbar shadow on scroll
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', window.scrollY > 10));
+
+    // Mobile menu
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+    menuToggle.addEventListener('click', () => {
+      const open = navLinks.classList.toggle('open');
+      menuToggle.setAttribute('aria-expanded', open);
+    });
+    navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+      menuToggle.setAttribute('aria-expanded', 'false');
+    }));
+
+    // Reveal on scroll
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // Animated counters
+    const counterObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target;
+        const target = parseFloat(el.dataset.count);
+        const decimals = parseInt(el.dataset.decimal || '0', 10);
+        const suffix = el.dataset.suffix || '';
+        const start = performance.now();
+        const duration = 1600;
+        const tick = now => {
+          const p = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - p, 3);
+          const value = target * eased;
+          el.textContent = value.toLocaleString('id-ID', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+        counterObserver.unobserve(el);
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
+
+    // Billing toggle
+    const billingSwitch = document.getElementById('billingSwitch');
+    billingSwitch.addEventListener('click', () => {
+      const yearly = billingSwitch.classList.toggle('yearly');
+      billingSwitch.setAttribute('aria-pressed', yearly);
+      document.querySelectorAll('[data-monthly]').forEach(el => {
+        el.textContent = yearly ? el.dataset.yearly : el.dataset.monthly;
+      });
+    });
+
+    // FAQ accordion
+    document.querySelectorAll('.faq-item').forEach(item => {
+      const btn = item.querySelector('.faq-q');
+      const answer = item.querySelector('.faq-a');
+      btn.addEventListener('click', () => {
+        const isOpen = item.classList.toggle('open');
+        btn.setAttribute('aria-expanded', isOpen);
+        answer.style.maxHeight = isOpen ? answer.scrollHeight + 'px' : null;
+      });
+    });
+
+    // CTA form
+    document.getElementById('ctaForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const email = document.getElementById('ctaEmail');
+      const msg = document.getElementById('formMsg');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+        msg.textContent = 'Mohon masukkan alamat email yang valid.';
+        return;
+      }
+      location.href = 'register.html?email=' + encodeURIComponent(email.value.trim());
+      email.value = '';
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
